@@ -5,6 +5,7 @@ document.addEventListener('keydown', e => {
     }
 })
 
+// click-handling of coping hex and locking the color
 document.addEventListener('click', e => {
     const type = e.target.dataset.type
 
@@ -33,6 +34,7 @@ const getRandomHex = () => {
     return '#' + color
 }
 
+// using chroma lib to define the color of title: white or black
 const setTextColor = (text, color) => {
     const luminance = chroma(color).luminance()
     text.style.color = luminance > 0.5 ? 'black' : 'white'
@@ -66,6 +68,7 @@ const copyToClipBoard = text => {
     return navigator.clipboard.writeText(text)
 }
 
+// hash is used to give the user an opportunity to share the generated palette via link
 const updateColorsHash = (colors = []) => {
     document.location.hash = colors.map(color => color.toString().substring(1)).join('-')
 }
@@ -73,7 +76,7 @@ const updateColorsHash = (colors = []) => {
 const getColorsFromHash = () => {
     if (document.location.hash.length > 1) {
         return document.location.hash.substring(1).split('-').map(color => '#' + color)
-    }
+    } else return []
 }
 
 setRandomColors(true)
