@@ -1,7 +1,26 @@
+// initializing Notiflix to show copy popup
+Notiflix.Notify.init({
+    width: 'fit-content',
+    timeout: 1800,
+    borderRadius: '12px',
+    fontSize: '16px',
+    useIcon: false,
+    success: {
+        background: '#444444'
+    }
+})
+
 document.addEventListener('keydown', e => {
-    e.preventDefault()
-    if (e.code.toLowerCase() === 'space') {
-        setRandomColors()
+    const code = e.code.toLowerCase()
+    if (R.equals(code, 'space')) {
+        e.preventDefault()
+        document.querySelectorAll('.col').forEach(column => setColumnColor(column))
+    }
+    if (R.equals(code, 'keyn')) {
+        addLastColumn()
+    }
+    if (R.equals(code, 'keyd')) {
+        R.last(document.querySelectorAll('.col')).remove()
     }
 })
 
@@ -9,27 +28,35 @@ document.addEventListener('keydown', e => {
 document.addEventListener('click', e => {
     const type = e.target.dataset.type
 
-    if (type === 'lock') {
-        const node = e.target.tagName.toLowerCase() === 'i'
+    if (R.equals(type, 'lock')) {
+        const node = R.equals(e.target.tagName.toLowerCase(), 'i')
             ? e.target
-            : e.target.children[0]
+            : R.head(e.target.children)
 
         node.classList.toggle('fa-lock-open')
         node.classList.toggle('fa-lock')
     }
-    else if (type === 'copy') {
-        copyToClipBoard(e.target.textContent)
+    else if (R.equals(type, 'copy')) {
+        copyToClipBoard(e.target.textContent).
+            then(Notiflix.Notify.success('HEX copied!'))
+    }
+    else if (R.equals(type, 'delete')) {
+        const columnsCount = R.length(document.querySelectorAll('.col'))
+        if (columnsCount > 1) {
+            e.target.closest('.col').remove()
+        }
+        if (R.equals(columnsCount, 2)) {
+            document.querySelector('.col #delete').disabled = true
+        }
     }
 })
-
-const columns = document.querySelectorAll('.col')
 
 //simple hex randomizer
 const getRandomHex = () => {
     const hexCodex = '0123456789ABCDEF'
     let color = ''
     for (let i = 0; i < 6; i++) {
-        color += hexCodex[Math.floor(Math.random() * hexCodex.length)]
+        color += hexCodex[Math.floor(Math.random() * R.length(hexCodex))]
     }
     return '#' + color
 }
@@ -40,43 +67,68 @@ const setTextColor = (text, color) => {
     text.style.color = luminance > 0.5 ? 'black' : 'white'
 }
 
-const setRandomColors = (isInitial) => {
-    const colors = isInitial ? getColorsFromHash() : []
-    columns.forEach((col, index) => {
-        const title = col.querySelector('h2')
-        const button = col.querySelector('button')
-        const color = isInitial ? colors[index] || getRandomHex() : getRandomHex() //or chroma.random()
+const setColumnColor = column => {
+    const isLocked = column.querySelector('#lockIcon').classList.contains('fa-lock')
+    if (isLocked) return
 
-        const isLocked = col.querySelector('i').classList.contains('fa-lock')
-        if (isLocked) {
-            colors.push(title.textContent)
-            return
-        }
-        if (!isInitial) {
-            colors.push(color)
-        }
+    const title = column.querySelector('h2')
+    const buttons = column.querySelectorAll('button')
+    const color = getRandomHex() //or chroma.random()
 
-        title.textContent = color
-        col.style.background = color
-        setTextColor(title, color)
-        setTextColor(button, color)
-        updateColorsHash(colors)
-    })
+    title.textContent = color
+    column.style.background = color
+    setTextColor(title, color)
+    buttons.forEach(button => setTextColor(button, color))
 }
 
 const copyToClipBoard = text => {
     return navigator.clipboard.writeText(text)
 }
 
-// hash is used to give the user an opportunity to share the generated palette via link
-const updateColorsHash = (colors = []) => {
-    document.location.hash = colors.map(color => color.toString().substring(1)).join('-')
+// a method to create a column with all its buttons
+const createColumn = () => {
+    const column = document.createElement('div')
+    column.classList.add('col')
+
+    const title = document.createElement('h2')
+    title.dataset.type = 'copy'
+
+    const buttons = document.createElement('div')
+    buttons.classList.add('buttons')
+
+    const createButton = (buttonType, iconClasses) => {
+        const button = document.createElement('button')
+        button.dataset.type = buttonType
+        const icon = document.createElement('i')
+        icon.dataset.type = buttonType
+        icon.classList.add(...iconClasses)
+        icon.id = buttonType + 'Icon'
+        button.append(icon)
+        button.id = buttonType
+        return button
+    }
+
+    const deleteButton = createButton('delete', ['fa-regular', 'fa-xmark'])
+    const lockButton = createButton('lock', ['fa-solid', 'fa-lock-open'])
+    buttons.append(deleteButton, lockButton)
+
+    column.append(title, buttons)
+    setColumnColor(column)
+
+    return column
 }
 
-const getColorsFromHash = () => {
-    if (document.location.hash.length > 1) {
-        return document.location.hash.substring(1).split('-').map(color => '#' + color)
-    } else return []
+const addColumn = () => {
+    const body = document.querySelector('body')
+    body.append(createColumn())
 }
 
-setRandomColors(true)
+const addLastColumn = () => {
+    const body = document.querySelector('body')
+    const addButton = body.querySelector('#add')
+    body.insertBefore(createColumn(), addButton)
+}
+
+for (let i = 0; i < 4; i++) {
+    addColumn()
+}

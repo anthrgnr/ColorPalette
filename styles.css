@@ -5,6 +5,7 @@
 }
 
 body {
+    position: relative;
     height: 100vh;
     display: flex;
     justify-content: space-between;
@@ -19,7 +20,8 @@ body {
     align-items: center;
 }
 
-.col h2, button {
+.col h2,
+button {
     padding: 2px 8px;
     color: white;
     border-radius: 8px;
@@ -28,15 +30,40 @@ body {
     padding: 16px 32px;
 }
 
-
 .col button {
     outline: none;
     border: none;
     background: transparent;
-    padding: 16px;
+    padding: 12px;
 }
 
-.col h2:hover, button:hover {
+.col button:disabled {
+    opacity: .5;
+}
+
+.col button:disabled,
+button:hover {
+    background: transparent;
+    cursor: auto;
+}
+
+.col h2:hover,
+button:hover {
     cursor: pointer;
     background-color: rgba(0, 0, 0, 0.2);
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    grid-gap: 10px;
+}
+
+.col .buttons {
+    opacity: 0;
+}
+
+.col:hover .buttons {
+    transition: opacity .6s;
+    opacity: 1;
 }
