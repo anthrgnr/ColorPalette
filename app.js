@@ -51,11 +51,13 @@ document.addEventListener('click', e => {
     }
 })
 
+const HEX_CODE_COUNT = 6
+
 //simple hex randomizer
 const getRandomHex = () => {
     const hexCodex = '0123456789ABCDEF'
     let color = ''
-    for (let i = 0; i < 6; i++) {
+    for (let i = 0; i < HEX_CODE_COUNT; i++) {
         color += hexCodex[Math.floor(Math.random() * R.length(hexCodex))]
     }
     return '#' + color
